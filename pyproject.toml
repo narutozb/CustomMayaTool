@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "CustomMayaTool"
-version = "0.0.1"
+version = "0.0.3"
 description = "A custom tool for Maya to enhance productivity"
 authors = [
     { name = "qiao yuanzhen", email = "narutozbjp@hotmail.com" }
@@ -13,7 +13,21 @@ readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+license = 'MIT'
 dependencies = []
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["CustomMT*"]
+
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+
+
+
+

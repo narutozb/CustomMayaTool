@@ -1,6 +1,6 @@
 from maya import cmds
 
-from CustomMT.job_manager import ScriptJobManagerBase
+from CustomMT import ScriptJobManagerBase
 
 
 class SJM(ScriptJobManagerBase): pass

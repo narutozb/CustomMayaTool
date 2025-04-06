@@ -7,11 +7,13 @@ import tempfile
 import maya.cmds as cmds
 
 from CustomMT.job_manager import ScriptJobManagerBase
+from CustomMT.menu_builder import MenuBuilder
 
 
 @dataclasses.dataclass
 class Sample1ToolParameterDC:
     watch_new_scene_opened: bool = False
+    watch_selection_changed: bool = False
 
 
 class __Single(type):
@@ -25,7 +27,6 @@ class __Single(type):
 
 class AppData(metaclass=__Single):
     save_data_path = os.path.join(tempfile.gettempdir(), 'CustomMT_sjm_sample1_save_data.json')
-
     temp_data: Sample1ToolParameterDC
 
     @classmethod
@@ -36,7 +37,6 @@ class AppData(metaclass=__Single):
             with open(cls.save_data_path, 'w', encoding='utf8') as f:
                 f.write(json.dumps(dataclasses.asdict(data), indent=4))
         cls.save_data(data)
-
         cls.temp_data = cls.load_from_file()
 
     @classmethod
@@ -57,9 +57,6 @@ class AppData(metaclass=__Single):
             f.write(json.dumps(dataclasses.asdict(data), indent=4))
 
 
-AppData().initialize()
-
-
 class ToolManager1(ScriptJobManagerBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -70,8 +67,18 @@ class ToolManager1(ScriptJobManagerBase):
         print('ToolManager1 del'.center(50, '-'))
 
 
-@ToolManager1.add_script_job_decorator(event=['NewSceneOpened', 'script'], _global_live=True)
-def tool1():
+class ToolManager2(ScriptJobManagerBase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        print('ToolManager2 init'.center(50, '-'))
+
+    def __del__(self):
+        super().__del__()
+        print('ToolManager2 del'.center(50, '-'))
+
+
+@ToolManager1.add_script_job_decorator(event=['NewSceneOpened', 'script'], )
+def tool1(*args, **kwargs):
     cmds.confirmDialog(
         title='Tool1',
         message=f'Testing tool1\n' + 'NewSceneOpened',
@@ -94,37 +101,70 @@ def watch_new_scene_opened(check_on: bool, menu_name: str = None, *args, **kwarg
     AppData.save_data(AppData.temp_data)
 
 
-def close_window():
+@ToolManager2.add_script_job_decorator(event=['SelectionChanged', 'script'], )
+def tool2(*args, **kwargs):
+    print('selection changed')
+
+
+def watch_selection_changed(check_on: bool, *args, **kwargs):
+    print('*' * 3, 'event,SelectionChanged')
+    AppData.temp_data.watch_selection_changed = check_on
+    if check_on:
+        ToolManager2.run_jobs(debug_mode=True)
+    else:
+        ToolManager2.kill_jobs(debug_mode=True)
+    AppData.save_data(AppData.temp_data)
+
+
+def close_tool_command():
     print('close_window'.center(50, '-'))
     ToolManager1.kill_jobs(debug_mode=True)
     ToolManager1.registration_script_job_list.clear()
 
+    ToolManager2.kill_jobs(debug_mode=True)
+    ToolManager2.registration_script_job_list.clear()
 
-WINDOW_NAME = 'myWindow'
 
-if cmds.window(WINDOW_NAME, exists=True):
-    cmds.deleteUI(WINDOW_NAME)
-cmds.window(WINDOW_NAME, menuBar=True, width=200, closeCommand=close_window)
+if __name__ == '__main__':
+    AppData().initialize()
+    WINDOW_NAME = 'myWindow'
 
-cmds.menu(label='MainMenu1', tearOff=True)
-cmds.menuItem(divider=True, dividerLabel='Section 1')
+    if cmds.window(WINDOW_NAME, exists=True):
+        cmds.deleteUI(WINDOW_NAME)
+    cmds.window(WINDOW_NAME, menuBar=True, width=200, closeCommand=close_tool_command)
 
-#
-watch_new_scene_opened_menu_name = 'watch_new_scene_opened'
-mi_check1 = cmds.menuItem(
-    watch_new_scene_opened_menu_name,
-    label=watch_new_scene_opened_menu_name,
-    checkBox=AppData.temp_data.watch_new_scene_opened,
-    command=functools.partial(watch_new_scene_opened, menu_name=watch_new_scene_opened_menu_name))
-if AppData.temp_data.watch_new_scene_opened:
-    ToolManager1.run_jobs(debug_mode=True)
+    cmds.menu(label='MainMenu1', tearOff=True)
+    cmds.menuItem(divider=True, dividerLabel='Section 1')
 
-mi_check2 = cmds.menuItem(label='sb22', checkBox=False)
-cmds.menuItem(divider=True, longDivider=False)
-cmds.menuItem(label='Bottom', checkBox=True)
+    #
+    watch_new_scene_opened_menu_name = 'watch_new_scene_opened'
+    mi_check1 = cmds.menuItem(
+        watch_new_scene_opened_menu_name,
+        label=watch_new_scene_opened_menu_name,
+        checkBox=AppData.temp_data.watch_new_scene_opened,
+        command=functools.partial(watch_new_scene_opened,
+                                  menu_name=watch_new_scene_opened_menu_name))
+    if AppData.temp_data.watch_new_scene_opened:
+        ToolManager1.run_jobs(debug_mode=True)
 
-cmds.showWindow()
+    menu_list = [
+        {
+            'parent': WINDOW_NAME,
+            'label': 'MainMenu2',
+            '__menu_items': [
+                {
+                    'label': 'MainMenu2-Sub1',
+                    'command': watch_selection_changed,
+                    'checkBox': AppData.temp_data.watch_selection_changed,
+                }
+            ]
+        },
+    ]
+    menu_builder = MenuBuilder()
 
-for i in ToolManager1.registration_script_job_list:
-    print(i.get_nice_name())
-    print(i.is_job_running())
+    menu_builder.build(menu_list)
+    cmds.showWindow()
+
+    for i in ToolManager1.registration_script_job_list:
+        print(i.get_nice_name())
+        print(i.is_job_running())
