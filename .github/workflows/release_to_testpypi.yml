@@ -25,9 +25,12 @@ jobs:
           pip install build
 
       - name: 构建包
-        run: python -m build
+        run: |
+          rm -rf dist  # 清理旧的构建产物
+          python -m build
 
       - name: 发布到 TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          attestations: false  # 禁用 attestations 以避免相关警告
