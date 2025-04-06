@@ -6,6 +6,10 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+    permissions:
+      id-token: write
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -27,4 +31,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
