@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "CustomMayaTool"
-version = "0.0.3"
+version = "0.0.4"
 description = "A custom tool for Maya to enhance productivity"
 authors = [
     { name = "qiao yuanzhen", email = "narutozbjp@hotmail.com" }
