@@ -6,7 +6,7 @@ import tempfile
 
 import maya.cmds as cmds
 
-from CustomMT.job_manager import ScriptJobManagerBase
+from CustomMT.commonext.scriptjob_manager import ScriptJobManagerBase
 from CustomMT.menu_builder import MenuBuilder
 
 

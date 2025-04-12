@@ -1,7 +1,20 @@
 from maya import cmds, mel
 
+from .ui import UI
 
-class Window:
+
+class Window(UI):
+
+    def __init__(self):
+        super().__init__()
+        self._cls = cmds.window
+
+    def show(self):
+        cmds.showWindow(self.path)
+
+    def close(self):
+        self.close_windows([self.path])
+
     @classmethod
     def get_main_window(cls, ):
         """
@@ -17,6 +30,9 @@ class Window:
         关闭指定名称的窗口
         :param name_list: 窗口名称列表
         """
+        if name_list is None:
+            name_list = []
+
         result = []
         for name in name_list:
             if cmds.window(name, exists=True):

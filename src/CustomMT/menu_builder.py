@@ -5,8 +5,8 @@ class CustomMenu:
     def __init__(self):
         self.name = None
 
-    def create_menu(self, parent: str, **kwargs):
-        self.name = cmds.menu(parent=parent, **kwargs)
+    def create_menu(self, **kwargs):
+        self.name = cmds.menu(**kwargs)
         return self.name
 
     def edit_menu(self, **kwargs):

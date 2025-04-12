@@ -1,6 +1,6 @@
 import dataclasses
 
-from CustomMT.job_manager import ScriptJobManagerBase
+from CustomMT.common_ext.job_manager import ScriptJobManagerBase
 
 
 @dataclasses.dataclass

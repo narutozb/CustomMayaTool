@@ -130,11 +130,3 @@ class ScriptJobManagerBase(metaclass=_JobManagerMeta):
             return wrapper
 
         return decorator
-
-    def __del__(self):
-        """
-        清除注册的脚本任务
-        :return:
-        """
-        self.kill_jobs()
-        self.registration_script_job_list.clear()
